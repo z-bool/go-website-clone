@@ -19,8 +19,6 @@ import (
 type Config struct {
 	// URLs 要克隆的网站URL列表
 	URLs []string
-	// Open 是否自动在默认浏览器中打开项目
-	Open bool
 	// UserAgent 自定义用户代理
 	UserAgent string
 	// ProxyString 代理连接字符串

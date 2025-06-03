@@ -12,7 +12,6 @@ func main() {
 	ctx := context.Background()
 	config := &goclone.Config{
 		URLs:          []string{"https://www.zttc.cn/"},
-		Open:          false,
 		UserAgent:     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0",
 		ProxyString:   "", // 如需代理，格式如: "http://127.0.0.1:8080"
 		Cookies:       []string{"session=abc123", "user=test"},
