@@ -10,13 +10,14 @@ import (
 
 func main() {
 	ctx := context.Background()
-	fmt.Println("\n=== 完整配置示例 ===")
 	config := &goclone.Config{
-		URLs:        []string{"https://www.baidu.com"},
-		Open:        false,
-		UserAgent:   "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0",
-		ProxyString: "", // 如需代理，格式如: "http://127.0.0.1:8080"
-		Cookies:     []string{"session=abc123", "user=test"},
+		URLs:          []string{"https://www.zttc.cn/"},
+		Open:          false,
+		UserAgent:     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:139.0) Gecko/20100101 Firefox/139.0",
+		ProxyString:   "", // 如需代理，格式如: "http://127.0.0.1:8080"
+		Cookies:       []string{"session=abc123", "user=test"},
+		ConfigID:      "",               // 留空将自动生成UUID，也可以手动指定
+		MaxFolderSize: 50 * 1024 * 1024, // 50MB限制，设置为0表示无限制
 	}
 
 	result2 := goclone.Clone(ctx, config)
@@ -27,6 +28,6 @@ func main() {
 		for i, path := range result2.ProjectPaths {
 			fmt.Printf("  %d. %s\n", i+1, path)
 		}
+		fmt.Printf("配置ID: %s\n", config.ConfigID)
 	}
-
 }

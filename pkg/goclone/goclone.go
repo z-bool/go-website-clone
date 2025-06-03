@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/z-bool/go-website-clone/pkg/crawler"
 	"github.com/z-bool/go-website-clone/pkg/file"
 	"github.com/z-bool/go-website-clone/pkg/html"
@@ -26,6 +27,25 @@ type Config struct {
 	ProxyString string
 	// Cookies 预设的cookie列表
 	Cookies []string
+	// ConfigID 配置ID，使用UUID标识，用作保存文件夹名称
+	ConfigID string
+	// MaxFolderSize 文件夹最大大小限制（字节）
+	MaxFolderSize int64
+}
+
+// GetProxyString 实现CrawlConfig接口
+func (c *Config) GetProxyString() string {
+	return c.ProxyString
+}
+
+// GetUserAgent 实现CrawlConfig接口
+func (c *Config) GetUserAgent() string {
+	return c.UserAgent
+}
+
+// GetMaxFolderSize 实现CrawlConfig接口
+func (c *Config) GetMaxFolderSize() int64 {
+	return c.MaxFolderSize
 }
 
 // CloneResult 克隆结果
@@ -51,7 +71,12 @@ func Clone(ctx context.Context, config *Config) *CloneResult {
 		return result
 	}
 
-	fmt.Printf("开始克隆 %d 个URL\n", len(config.URLs))
+	// 如果ConfigID为空，生成新的UUID
+	if config.ConfigID == "" {
+		config.ConfigID = uuid.New().String()
+	}
+
+	fmt.Printf("开始克隆 %d 个URL，配置ID: %s\n", len(config.URLs), config.ConfigID)
 
 	// 创建cookie jar
 	jar, err := cookiejar.New(&cookiejar.Options{})
@@ -69,7 +94,7 @@ func Clone(ctx context.Context, config *Config) *CloneResult {
 	// 处理每个URL
 	for i, u := range config.URLs {
 		fmt.Printf("正在处理第 %d 个URL: %s\n", i+1, u)
-		projectPath, err := cloneURL(ctx, u, jar, config.ProxyString, config.UserAgent)
+		projectPath, err := cloneURL(ctx, u, jar, config)
 		if err != nil {
 			result.Error = fmt.Errorf("克隆 %q 失败: %w", u, err)
 			return result
@@ -89,25 +114,22 @@ func Clone(ctx context.Context, config *Config) *CloneResult {
 }
 
 // cloneURL 克隆单个URL
-func cloneURL(ctx context.Context, targetURL string, jar *cookiejar.Jar, proxyString, userAgent string) (string, error) {
+func cloneURL(ctx context.Context, targetURL string, jar *cookiejar.Jar, config *Config) (string, error) {
 	isValid, isValidDomain := parser.ValidateURL(targetURL), parser.ValidateDomain(targetURL)
 	if !isValid && !isValidDomain {
 		return "", fmt.Errorf("URL %q 无效", targetURL)
 	}
 
-	name := targetURL
 	finalURL := targetURL
-
 	if isValidDomain {
-		finalURL = parser.CreateURL(name)
-	} else {
-		name = parser.GetDomain(targetURL)
+		finalURL = parser.CreateURL(targetURL)
 	}
 
-	projectPath := file.CreateProject(name)
+	// 使用ConfigID作为项目文件夹名称
+	projectPath := file.CreateProjectWithID(config.ConfigID)
 
-	// 执行爬取
-	if err := crawler.Crawl(ctx, finalURL, projectPath, jar, proxyString, userAgent); err != nil {
+	// 执行爬取，传递配置对象以便进行大小检查
+	if err := crawler.CrawlWithConfig(ctx, finalURL, projectPath, jar, config); err != nil {
 		return "", fmt.Errorf("爬取失败: %w", err)
 	}
 

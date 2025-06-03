@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/z-bool/go-website-clone/pkg/parser"
 )
@@ -56,7 +58,30 @@ func Extractor(link string, projectPath string) {
 	}
 }
 
+// sanitizeFilename 清理文件名中的非法字符
+func sanitizeFilename(filename string) string {
+	// 移除查询参数
+	if idx := strings.Index(filename, "?"); idx != -1 {
+		filename = filename[:idx]
+	}
+
+	// 移除Windows文件名中的非法字符
+	invalidChars := regexp.MustCompile(`[<>:"/\\|?*]`)
+	filename = invalidChars.ReplaceAllString(filename, "_")
+
+	// 确保文件名不为空
+	if filename == "" {
+		filename = "unnamed_file"
+	}
+
+	return filename
+}
+
 func writeFileToPath(projectPath, base, oldFileExt, newFileExt, fileDir string, resp *http.Response) {
+	// 清理文件名
+	base = sanitizeFilename(base)
+	oldFileExt = sanitizeFilename(oldFileExt)
+
 	var name = base[0 : len(base)-len(oldFileExt)]
 	document := name + newFileExt
 
