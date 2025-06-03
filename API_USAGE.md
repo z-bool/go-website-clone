@@ -1,5 +1,3 @@
-# go-website-clone
-goclone-dev/goclone的优化版本，可以直接用代码调用
 # GoClone 函数式API使用指南
 
 ## 概述
