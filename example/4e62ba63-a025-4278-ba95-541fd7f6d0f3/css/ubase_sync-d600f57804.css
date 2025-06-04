@@ -1,0 +1,3 @@
+.sui-scrollbar-container{position:relative;overflow:hidden}
+.sui-scrollbar-bar{border-left:1px solid #e1e1e1;border-right:1px solid #e3e3e3;border-top:1px solid #e3e3e3;border-bottom:1px solid #e3e3e3;background:#e3e3e3;width:7px;position:absolute;top:0;right:0;height:100%;cursor:pointer}
+.sui-scrollbar-slider{border:1px solid #e1e1e1;background:#fff;width:100%;left:-1px;position:absolute;cursor:pointer}

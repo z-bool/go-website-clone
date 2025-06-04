@@ -13,6 +13,7 @@ import (
 	"github.com/z-bool/go-website-clone/pkg/file"
 	"github.com/z-bool/go-website-clone/pkg/html"
 	"github.com/z-bool/go-website-clone/pkg/parser"
+	"github.com/z-bool/go-website-clone/pkg/utils"
 )
 
 // Config 配置结构体，用于替代命令行参数
@@ -29,6 +30,10 @@ type Config struct {
 	ConfigID string
 	// MaxFolderSize 文件夹最大大小限制（字节）
 	MaxFolderSize int64
+	// AutoStartServer 是否自动启动本地服务器
+	AutoStartServer bool
+	// ClickTurnto 表单提交后跳转的URL地址
+	ClickTurnto string
 }
 
 // GetProxyString 实现CrawlConfig接口
@@ -46,6 +51,11 @@ func (c *Config) GetMaxFolderSize() int64 {
 	return c.MaxFolderSize
 }
 
+// GetClickTurnto 实现CloneConfig接口
+func (c *Config) GetClickTurnto() string {
+	return c.ClickTurnto
+}
+
 // CloneResult 克隆结果
 type CloneResult struct {
 	// Success 是否成功
@@ -54,6 +64,8 @@ type CloneResult struct {
 	ProjectPaths []string
 	// FirstProject 第一个项目路径（用于服务器或打开）
 	FirstProject string
+	// ServerConfig 服务器配置信息（如果启动了服务器）
+	ServerConfig *utils.ServerConfig
 	// Error 错误信息
 	Error error
 }
@@ -106,6 +118,18 @@ func Clone(ctx context.Context, config *Config) *CloneResult {
 	}
 
 	fmt.Println("所有URL克隆完成")
+
+	// 如果配置了自动启动服务器，启动本地服务器
+	if config.AutoStartServer && result.FirstProject != "" {
+		fmt.Println("正在启动本地服务器...")
+		serverConfig, err := utils.StartServerWithConfig(result.FirstProject, config)
+		if err != nil {
+			fmt.Printf("启动服务器失败: %v\n", err)
+		} else {
+			result.ServerConfig = serverConfig
+			fmt.Printf("服务器已启动，访问地址: http://%s:%d\n", serverConfig.Host, serverConfig.Port)
+		}
+	}
 
 	result.Success = true
 	return result
